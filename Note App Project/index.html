@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <p>The year </p>
+    <input type="text" id="description" placeholder="Description" autofocus>
+    <br>
+    <input type="text" id="day" maxlength="10" placeholder="DD">
+    <input type="text" id="month" maxlength="9" placeholder="MM">
+    
+    <input type="text" id="year" maxlength="4" placeholder="YYYY">
+    
+    <br>
+    
+    <br>
+    <button onclick="displayDate()">Print Date</button>
+    <button onclick="clearAllNotes()">Clear All Notes</button>
+
+    <script src="moment-with-locales.js"></script>
+    <script src="script.js"></script>
+
+    <br>
+    <p id="date-display"></p>
+    
+    <div id="notes-container"></div>
+</body>
+</html>

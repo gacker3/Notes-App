@@ -67,3 +67,20 @@ If these are missing, Electron uses its default icon.
 | `Shift+A` | Archive oldest old note |
 | `⌘↵` | Save note in editor |
 | `Esc` | Close editor |
+
+
+
+
+
+
+
+INSTALLING:
+
+Unzip the downloads into a new File, I labeled mine "Notes App"
+
+Open Terminal and run:
+cd ~/Notes\ App
+npm install - (this might take a second as it needs to install Electron)
+npm start
+
+It should be working!

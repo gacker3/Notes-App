@@ -75,7 +75,7 @@ Installing the "Notes App" (name tbd ig):
 - unzip github file, preferabbly save it somewhere easy to find
 - Open Terminal
 - Run the following:
-- cd dig-systems
+- cd (file location name)
 - npm install
 - nmp start
 

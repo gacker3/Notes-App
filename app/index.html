@@ -35,7 +35,6 @@
 
   <button class="hbtn" id="newBtn" title="New note (Enter)">+</button>
   <button class="hbtn" id="settingsBtn" title="Settings">⚙</button>
-  <button class="hbtn" id="closeBtn" title="Close" style="margin-left:2px;display:none">✕</button>
 </div>
 
 <!-- FLOAT VIEW -->
@@ -46,6 +45,7 @@
     <div class="sc-row"><span>Notes:</span><span class="sc-key">Enter</span></div>
     <div class="sc-row"><span>View:</span><span class="sc-key">Tab</span></div>
     <div class="sc-row"><span>Archive:</span><span class="sc-key">Shift+A</span></div>
+    <div class="sc-row"><span>Undo:</span><span class="sc-key">⌘Z</span></div>
   </div>
 </div>
 
@@ -61,6 +61,21 @@
   <div class="finder-body" id="finderBody"></div>
 </div>
 
+<!-- NOTE VIEWER (read-only) -->
+<div class="overlay" id="viewerOverlay">
+  <div class="editor-box">
+    <div class="editor-top">
+      <div class="viewer-title" id="viewerTitle"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="viewer-edit-btn" id="viewerEditBtn" title="Edit">✎</span>
+        <span class="e-close" id="viewerClose">✕</span>
+      </div>
+    </div>
+    <div class="viewer-body" id="viewerBody"></div>
+    <div class="viewer-meta" id="viewerMeta"></div>
+  </div>
+</div>
+
 <!-- NOTE EDITOR -->
 <div class="overlay" id="overlay">
   <div class="editor-box">
@@ -68,18 +83,19 @@
       <input class="e-title" id="eTitle" placeholder="Note title…"/>
       <span class="e-close" id="eClose">✕</span>
     </div>
-    <textarea class="e-body" id="eBody" placeholder="Write anything…&#10;&#10;- bullet with -&#10;[ ] todo with [ ]"></textarea>
+    <!-- Plain body (shown when todo is unchecked) -->
+    <textarea class="e-body" id="eBody" placeholder="Write anything…&#10;&#10;Start a line with - for a bullet point"></textarea>
+    <!-- Todo item list (shown when todo is checked) -->
+    <div class="todo-editor" id="todoEditor">
+      <div class="todo-items" id="todoItems"></div>
+      <button class="todo-add-btn" id="todoAddBtn">+ add item</button>
+    </div>
     <div class="e-meta">
-      <label class="e-check-label"><input type="checkbox" id="eTodo" style="margin:0"/> todo?</label>
-      <input class="e-tag" id="eTag1" placeholder="tag 1…"/>
-      <input class="e-tag" id="eTag2" placeholder="tag 2…" style="width:90px"/>
+      <label class="e-check-label"><input type="checkbox" id="eTodo" style="margin:0"/> todo list</label>
     </div>
     <div class="e-footer">
       <select class="e-group" id="eGroup">
         <option value="">no group</option>
-        <option value="studio">studio</option>
-        <option value="cybernetics">cybernetics</option>
-        <option value="capstone">capstone</option>
       </select>
       <button class="e-save" id="eSave">Save  ⌘↵</button>
     </div>
@@ -96,19 +112,36 @@ const S = {
   filterGroup: 'all',
   suggestVisible: true,
   editingId: null,
-  groups: ['studio','cybernetics','capstone'],
-  notes: [
-    { id:1, title:'Substrate tests — cork vs sphagnum', body:'Moisture retention data over 72hr periods', tags:['capstone','studio'], group:'studio', x:60, y:55, w:136, h:100, created:daysAgo(185), completed:false, archived:false, grouped:true },
-    { id:2, title:'Moss cultivation log', body:'Week 3 — visible growth on N-facing sample', tags:['capstone'], group:'studio', x:220, y:40, w:118, h:92, created:daysAgo(180), completed:false, archived:false, grouped:true },
-    { id:3, title:'Acoustic consultation notes', body:'Absorption 125–500hz. Cork performs well', tags:['studio'], group:'studio', x:128, y:188, w:140, h:98, created:daysAgo(60), completed:true, archived:false, grouped:true },
-    { id:4, title:'Mycelium composite research', body:'Binding temps — arch faculty notes', tags:['capstone','urgent'], group:'cybernetics', x:400, y:70, w:128, h:98, created:daysAgo(90), completed:false, archived:false, grouped:true },
-    { id:5, title:'TU Delft — motivation letter', body:'Building Technology / Climate Design', tags:['urgent','senior year'], group:'cybernetics', x:548, y:42, w:140, h:95, created:daysAgo(30), completed:false, archived:false, grouped:true },
-    { id:6, title:'Water retention specs', body:'Passive capillary wicking — 72hr hold', tags:['capstone'], group:'studio', x:352, y:210, w:122, h:90, created:daysAgo(200), completed:false, archived:false, grouped:false },
-    { id:7, title:'Pittsburgh air quality data', body:'PM2.5: Lawrenceville vs Mt Washington', tags:['capstone'], group:'studio', x:188, y:300, w:134, h:85, created:daysAgo(45), completed:false, archived:false, grouped:false },
-    { id:8, title:'Structural consultation', body:'Load bearing — T-bar & chain-link mounting', tags:['capstone','studio'], group:'cybernetics', x:490, y:200, w:128, h:90, created:daysAgo(170), completed:false, archived:false, grouped:false },
-  ]
+  groups: [],
+  notes: []
 };
-let nextId = 20;
+let nextId = 1;
+
+/* ── UNDO STACK ── */
+const undoStack = [];
+const MAX_UNDO = 50;
+
+function snapshot(label) {
+  // Deep-clone the parts of state that mutations touch
+  undoStack.push({
+    label,
+    notes: JSON.parse(JSON.stringify(S.notes)),
+    groups: [...S.groups],
+    nextId
+  });
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+}
+
+function undo() {
+  if (!undoStack.length) { toast('Nothing to undo'); return; }
+  const prev = undoStack.pop();
+  S.notes = prev.notes;
+  S.groups = prev.groups;
+  nextId = prev.nextId;
+  // Re-render whichever view is active
+  if (S.mode === 'float') renderFloat(); else renderFinder();
+  toast(`Undo: ${prev.label}`);
+}
 
 function daysAgo(d) { return Date.now() - d * 86400000; }
 function ageText(ts) {
@@ -197,6 +230,7 @@ function renderFloat() {
 
       document.getElementById('gm-archive').onclick = e => {
         e.stopPropagation();
+        snapshot('archive group');
         groupNotes.forEach(n => { n.archived = true; });
         closeGroupMenu();
         renderFloat();
@@ -204,6 +238,7 @@ function renderFloat() {
       };
       document.getElementById('gm-ungroup').onclick = e => {
         e.stopPropagation();
+        snapshot('ungroup');
         groupNotes.forEach(n => { n.grouped = false; });
         closeGroupMenu();
         renderFloat();
@@ -219,10 +254,12 @@ function renderFloat() {
       const startX = e.clientX, startY = e.clientY;
       const startPositions = groupMembers.map(n => ({ n, x: n.x, y: n.y }));
       bg.style.cursor = 'grabbing';
+      let hasMoved = false;
       e.preventDefault();
       e.stopPropagation();
 
       function onMove(ev) {
+        if (!hasMoved) { snapshot('move group'); hasMoved = true; }
         const dx = ev.clientX - startX, dy = ev.clientY - startY;
         startPositions.forEach(({ n, x, y }) => { n.x = x + dx; n.y = y + dy; });
         renderFloat();
@@ -265,15 +302,6 @@ function renderFloat() {
     };
   }
 
-  // Tag tooltip on a tagged grouped note
-  const tn = S.notes.find(n => n.grouped && !n.archived && n.tags && n.tags.length > 1);
-  if (tn) {
-    const tt = div('tag-tooltip');
-    css(tt, { left:(tn.x + tn.w + 5)+'px', top:(tn.y + tn.h - 48)+'px' });
-    tt.innerHTML = `<div class="tt-label">tag:</div>${tn.tags.map(t=>'<div>'+t+'</div>').join('')}`;
-    canvas.appendChild(tt);
-  }
-
   // Note cards — rendered on top of group bubbles
   S.notes.filter(n => !n.archived).forEach(n => {
     const card = div('note-card' + (n.grouped ? ' grouped' : ''));
@@ -282,7 +310,6 @@ function renderFloat() {
     card.innerHTML = `
       <div class="note-inner">
         <div class="note-title">${n.title}</div>
-        <div class="note-tags">${n.tags ? n.tags.map(t=>'#'+t).join(' ') : ''}</div>
         <div class="note-age">${ageText(n.created)}</div>
       </div>
       <div class="note-actions">
@@ -290,9 +317,12 @@ function renderFloat() {
       </div>
     `;
     card.querySelector('.edit-nact').addEventListener('click', e => { e.stopPropagation(); openEditor(n.id); });
+    card.addEventListener('click', e => { if (!e.target.classList.contains('nact')) openViewer(n.id); });
     card.addEventListener('mousedown', onMouseDown);
     canvas.appendChild(card);
   });
+
+  setupLasso(canvas);
 }
 
 function onMouseDown(e) {
@@ -302,7 +332,7 @@ function onMouseDown(e) {
   const id = +card.dataset.id;
   const note = S.notes.find(n => n.id === id);
   if (!note) return;
-  drag = { note, card };
+  drag = { note, card, hasMoved: false };
   dragOff = { x: e.clientX - note.x, y: e.clientY - note.y };
   card.classList.add('dragging');
   e.preventDefault();
@@ -310,6 +340,7 @@ function onMouseDown(e) {
 }
 document.addEventListener('mousemove', e => {
   if (!drag) return;
+  if (!drag.hasMoved) { snapshot('move note'); drag.hasMoved = true; }
   drag.note.x = e.clientX - dragOff.x;
   drag.note.y = e.clientY - dragOff.y;
   drag.card.style.left = drag.note.x + 'px';
@@ -318,6 +349,139 @@ document.addEventListener('mousemove', e => {
 document.addEventListener('mouseup', () => {
   if (drag) { drag.card.classList.remove('dragging'); drag = null; }
 });
+
+/* ─────────────────────────────── LASSO SELECT ─── */
+let lassoActive = false;
+
+function setupLasso(canvas) {
+  canvas.addEventListener('mousedown', e => {
+    // Only trigger on bare canvas — not on cards or group bubbles
+    if (e.target !== canvas) return;
+    if (e.button !== 0) return;
+    closeGroupMenu();
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const startX = e.clientX - canvasRect.left;
+    const startY = e.clientY - canvasRect.top;
+
+    // Create lasso rect element
+    const lasso = div('lasso-rect');
+    css(lasso, { left: startX+'px', top: startY+'px', width: '0px', height: '0px' });
+    canvas.appendChild(lasso);
+    lassoActive = true;
+
+    // Highlight notes as they enter the lasso
+    function getRect(x1, y1, x2, y2) {
+      return {
+        left: Math.min(x1,x2), top: Math.min(y1,y2),
+        right: Math.max(x1,x2), bottom: Math.max(y1,y2)
+      };
+    }
+
+    function rectsOverlap(a, b) {
+      return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    }
+
+    function onMove(ev) {
+      const curX = ev.clientX - canvasRect.left;
+      const curY = ev.clientY - canvasRect.top;
+      const l = Math.min(startX, curX), t = Math.min(startY, curY);
+      const w = Math.abs(curX - startX), h = Math.abs(curY - startY);
+      css(lasso, { left:l+'px', top:t+'px', width:w+'px', height:h+'px' });
+
+      const lassoR = getRect(startX, startY, curX, curY);
+      // Highlight cards within lasso
+      canvas.querySelectorAll('.note-card').forEach(card => {
+        const n = S.notes.find(n => n.id === +card.dataset.id);
+        if (!n) return;
+        const noteR = { left: n.x, top: n.y, right: n.x + n.w, bottom: n.y + n.h };
+        card.classList.toggle('lasso-selected', rectsOverlap(lassoR, noteR));
+      });
+    }
+
+    function onUp(ev) {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      lasso.remove();
+      lassoActive = false;
+
+      const curX = ev.clientX - canvasRect.left;
+      const curY = ev.clientY - canvasRect.top;
+      const lassoR = getRect(startX, startY, curX, curY);
+
+      // Too small a drag = just a click, ignore
+      if (Math.abs(curX - startX) < 8 && Math.abs(curY - startY) < 8) return;
+
+      const selected = S.notes.filter(n => {
+        if (n.archived) return false;
+        const noteR = { left: n.x, top: n.y, right: n.x + n.w, bottom: n.y + n.h };
+        return rectsOverlap(lassoR, noteR);
+      });
+
+      if (selected.length < 2) {
+        renderFloat();
+        return;
+      }
+
+      // Prompt for group name
+      openGroupNameModal(selected);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+}
+
+function openGroupNameModal(selectedNotes) {
+  // Remove any existing modal
+  document.querySelectorAll('.group-name-modal').forEach(el => el.remove());
+
+  const modal = div('group-name-modal');
+  modal.innerHTML = `
+    <div class="gnm-box">
+      <div class="gnm-title">Name this group</div>
+      <div class="gnm-count">${selectedNotes.length} notes selected</div>
+      <input class="gnm-input" id="gnmInput" placeholder="group name…" autocomplete="off"/>
+      <div class="gnm-existing" id="gnmExisting"></div>
+      <div class="gnm-actions">
+        <button class="gnm-cancel" id="gnmCancel">Cancel</button>
+        <button class="gnm-save" id="gnmSave">Group</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Show existing groups as quick-pick chips
+  const existing = document.getElementById('gnmExisting');
+  S.groups.forEach(g => {
+    const chip = div('gnm-chip');
+    chip.textContent = g;
+    chip.onclick = () => { document.getElementById('gnmInput').value = g; };
+    existing.appendChild(chip);
+  });
+
+  const input = document.getElementById('gnmInput');
+  input.focus();
+
+  function doGroup() {
+    const name = input.value.trim();
+    if (!name) return;
+    snapshot('group notes');
+    if (!S.groups.includes(name)) S.groups.push(name);
+    selectedNotes.forEach(n => { n.group = name; n.grouped = true; });
+    modal.remove();
+    renderFloat();
+    toast(`Grouped into "${name}"`);
+  }
+
+  document.getElementById('gnmSave').onclick = doGroup;
+  document.getElementById('gnmCancel').onclick = () => { modal.remove(); renderFloat(); };
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doGroup();
+    if (e.key === 'Escape') { modal.remove(); renderFloat(); }
+  });
+}
 
 /* ─────────────────────────────── FINDER VIEW ─── */
 function renderFinder() {
@@ -391,7 +555,7 @@ function renderFinder() {
       card.querySelector('.fc-check').addEventListener('click', e => {
         e.stopPropagation(); n.completed = !n.completed; renderFinder();
       });
-      card.addEventListener('click', () => openEditor(n.id));
+      card.addEventListener('click', () => openViewer(n.id));
       grid.appendChild(card);
     });
     sec.appendChild(grid);
@@ -408,15 +572,146 @@ function setBreadcrumb(g) {
 }
 
 /* ─────────────────────────────── EDITOR ─── */
+/* ─────────────────────────────── VIEWER ─── */
+function openViewer(id) {
+  const n = S.notes.find(x => x.id === id);
+  if (!n) return;
+
+  document.getElementById('viewerTitle').textContent = n.title;
+  document.getElementById('viewerMeta').textContent =
+    (n.group ? n.group + ' · ' : '') + ageText(n.created);
+
+  const body = document.getElementById('viewerBody');
+  body.innerHTML = '';
+
+  if (n.todo && Array.isArray(n.items)) {
+    // Render interactive todo list (ticking updates state live)
+    n.items.forEach((item, i) => {
+      const row = div('viewer-todo-row');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = item.checked;
+      cb.className = 'viewer-todo-cb';
+      cb.addEventListener('change', () => {
+        snapshot('check todo item');
+        n.items[i].checked = cb.checked;
+      });
+      const lbl = document.createElement('span');
+      lbl.textContent = item.text;
+      lbl.className = 'viewer-todo-text' + (item.checked ? ' done' : '');
+      cb.addEventListener('change', () => lbl.classList.toggle('done', cb.checked));
+      row.appendChild(cb);
+      row.appendChild(lbl);
+      body.appendChild(row);
+    });
+  } else {
+    // Render plain text with bullet detection
+    const lines = (n.body || '').split('\n');
+    lines.forEach(line => {
+      const p = document.createElement('div');
+      p.className = 'viewer-line';
+      if (line.startsWith('- ')) {
+        p.classList.add('viewer-bullet');
+        p.textContent = line.slice(2);
+      } else {
+        p.textContent = line || '\u00a0'; // non-breaking space for empty lines
+      }
+      body.appendChild(p);
+    });
+  }
+
+  document.getElementById('viewerEditBtn').onclick = () => {
+    document.getElementById('viewerOverlay').classList.remove('open');
+    openEditor(id);
+  };
+  document.getElementById('viewerOverlay').classList.add('open');
+}
+
+document.getElementById('viewerClose').onclick = () =>
+  document.getElementById('viewerOverlay').classList.remove('open');
+
+/* ─────────────────────────────── EDITOR ─── */
+function syncTodoUI() {
+  const isTodo = document.getElementById('eTodo').checked;
+  document.getElementById('eBody').style.display = isTodo ? 'none' : 'block';
+  document.getElementById('todoEditor').style.display = isTodo ? 'flex' : 'none';
+}
+
+function addTodoItem(text = '', checked = false) {
+  const items = document.getElementById('todoItems');
+  const row = div('todo-item-row');
+
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = checked;
+  cb.className = 'todo-item-cb';
+
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = text;
+  inp.className = 'todo-item-input';
+  inp.placeholder = 'item…';
+
+  // Enter on an item adds a new one below
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newRow = addTodoItem();
+      newRow.querySelector('.todo-item-input').focus();
+    }
+    if (e.key === 'Backspace' && inp.value === '') {
+      e.preventDefault();
+      const prev = row.previousElementSibling;
+      row.remove();
+      if (prev) prev.querySelector('.todo-item-input').focus();
+    }
+  });
+
+  const del = div('todo-item-del');
+  del.textContent = '×';
+  del.onclick = () => row.remove();
+
+  row.appendChild(cb);
+  row.appendChild(inp);
+  row.appendChild(del);
+  items.appendChild(row);
+  return row;
+}
+
+document.getElementById('eTodo').addEventListener('change', syncTodoUI);
+document.getElementById('todoAddBtn').addEventListener('click', () => {
+  const row = addTodoItem();
+  row.querySelector('.todo-item-input').focus();
+});
+
 function openEditor(id) {
   S.editingId = id || null;
   const n = id ? S.notes.find(x => x.id === id) : null;
+
+  // Rebuild group options
+  const sel = document.getElementById('eGroup');
+  sel.innerHTML = '<option value="">no group</option>';
+  S.groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g; opt.textContent = g;
+    sel.appendChild(opt);
+  });
+
   document.getElementById('eTitle').value = n ? n.title : '';
-  document.getElementById('eBody').value  = n ? n.body  : '';
-  document.getElementById('eTag1').value  = n && n.tags ? (n.tags[0]||'') : '';
-  document.getElementById('eTag2').value  = n && n.tags ? (n.tags[1]||'') : '';
-  document.getElementById('eTodo').checked = n ? !!n.todo : false;
-  document.getElementById('eGroup').value  = n ? (n.group||'') : '';
+  sel.value = n ? (n.group || '') : '';
+
+  const isTodo = n ? !!n.todo : false;
+  document.getElementById('eTodo').checked = isTodo;
+
+  if (isTodo && n.items) {
+    document.getElementById('todoItems').innerHTML = '';
+    n.items.forEach(item => addTodoItem(item.text, item.checked));
+  } else {
+    document.getElementById('todoItems').innerHTML = '';
+    document.getElementById('eBody').value = n ? (n.body || '') : '';
+  }
+
+  syncTodoUI();
   document.getElementById('overlay').classList.add('open');
   document.getElementById('eTitle').focus();
 }
@@ -424,24 +719,37 @@ function openEditor(id) {
 function saveNote() {
   const title = document.getElementById('eTitle').value.trim();
   if (!title) { toast('Add a title'); return; }
-  const body  = document.getElementById('eBody').value;
-  const tag1  = document.getElementById('eTag1').value.trim();
-  const tag2  = document.getElementById('eTag2').value.trim();
-  const tags  = [tag1,tag2].filter(Boolean);
-  const todo  = document.getElementById('eTodo').checked;
   const group = document.getElementById('eGroup').value;
+  const isTodo = document.getElementById('eTodo').checked;
+
+  let body = '';
+  let items = [];
+
+  if (isTodo) {
+    document.getElementById('todoItems').querySelectorAll('.todo-item-row').forEach(row => {
+      const text = row.querySelector('.todo-item-input').value.trim();
+      const checked = row.querySelector('.todo-item-cb').checked;
+      if (text) items.push({ text, checked });
+    });
+  } else {
+    body = document.getElementById('eBody').value;
+  }
 
   if (S.editingId) {
+    snapshot('edit note');
     const n = S.notes.find(x => x.id === S.editingId);
-    if (n) Object.assign(n, { title, body, tags, todo, group });
+    if (n) Object.assign(n, { title, body, items, todo: isTodo, group });
   } else {
-    S.notes.push({ id:nextId++, title, body, tags, todo, group,
-      x:60+Math.random()*300, y:60+Math.random()*200,
-      w:130, h:95, created:Date.now(), completed:false, archived:false, grouped:false });
+    snapshot('new note');
+    S.notes.push({
+      id: nextId++, title, body, items, todo: isTodo, group,
+      x: 60 + Math.random() * 300, y: 60 + Math.random() * 200,
+      w: 130, h: 95, created: Date.now(), completed: false, archived: false, grouped: false
+    });
   }
   document.getElementById('overlay').classList.remove('open');
   S.editingId = null;
-  if (S.mode==='float') renderFloat(); else renderFinder();
+  if (S.mode === 'float') renderFloat(); else renderFinder();
   toast('Saved');
 }
 
@@ -485,16 +793,21 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
+  if (document.getElementById('viewerOverlay').classList.contains('open')) {
+    if (e.key === 'Escape') document.getElementById('viewerOverlay').classList.remove('open');
+    return;
+  }
   if (document.getElementById('overlay').classList.contains('open')) {
     if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open');
     if ((e.metaKey||e.ctrlKey) && e.key==='Enter') saveNote();
     return;
   }
+  if ((e.metaKey||e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
   if (e.key==='Enter' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openEditor(null); }
   if (e.key==='Tab') { e.preventDefault(); switchMode(S.mode==='float' ? 'finder' : 'float'); }
   if (e.shiftKey && e.key==='A') {
     const old = S.notes.find(n => !n.archived && isOld(n.created));
-    if (old) { old.archived=true; if(S.mode==='float') renderFloat(); toast('Archived: '+old.title.slice(0,28)); }
+    if (old) { snapshot('archive note'); old.archived=true; if(S.mode==='float') renderFloat(); toast('Archived: '+old.title.slice(0,28)); }
     else toast('No old notes to archive');
   }
 });
@@ -505,18 +818,6 @@ function css(el, styles) { Object.assign(el.style, styles); }
 
 /* ─────────────────────────────── INIT ─── */
 renderFloat();
-
-// Electron integration — only runs inside the app, no-ops in browser
-if (window.electronAPI) {
-  const closeBtn = document.getElementById('closeBtn');
-  closeBtn.style.display = 'flex';
-  closeBtn.onclick = () => window.electronAPI.closeApp();
-  // Make header draggable so window can be repositioned
-  document.querySelector('.header').style.webkitAppRegion = 'drag';
-  // But keep buttons clickable inside the drag region
-  document.querySelectorAll('.header button, .header .mode-wrap, .header #breadcrumb')
-    .forEach(el => el.style.webkitAppRegion = 'no-drag');
-}
 </script>
 </body>
 </html>

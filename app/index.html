@@ -799,7 +799,7 @@ document.addEventListener('keydown', e => {
   }
   if (document.getElementById('overlay').classList.contains('open')) {
     if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open');
-    if ((e.metaKey||e.ctrlKey) && e.key==='Enter') saveNote();
+    if (e.key==='Enter') saveNote();
     return;
   }
   if ((e.metaKey||e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); return; }

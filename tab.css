@@ -7,41 +7,41 @@
 }
 
 html, body {
-  width: 48px;
-  height: 110px;
+  width: 64px;
+  height: 140px;
   background: transparent;
   overflow: hidden;
 }
 
 .tab {
-  width: 48px;
-  height: 110px;
+  width: 64px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: flex-start; /* face protrudes from left (right edge of screen) */
 }
 
 .tab-face {
-  width: 34px; /* only 34px visible, rest is behind screen edge */
-  height: 96px;
+  width: 44px; /* 44px visible, 20px tucked behind screen edge */
+  height: 124px;
   background: #e8e7e3;
-  border-radius: 10px 0 0 10px;
+  border-radius: 12px 0 0 12px;
   border: 0.5px solid rgba(0, 0, 0, 0.18);
   border-right: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 9px;
   cursor: pointer;
-  transition: background 0.15s, width 0.12s;
+  transition: background 0.15s, width 0.1s;
   position: relative;
-  box-shadow: -3px 2px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: -4px 2px 16px rgba(0, 0, 0, 0.13);
 }
 
 .tab-face:hover {
   background: #dddcd8;
-  width: 36px;
+  width: 46px;
 }
 
 .tab-face.open {
@@ -61,12 +61,12 @@ html, body {
 
 .tab-label {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: #6b6b67;
   text-align: center;
-  line-height: 1.35;
+  line-height: 1.4;
   text-transform: lowercase;
 }
 

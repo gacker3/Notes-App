@@ -67,17 +67,3 @@ If these are missing, Electron uses its default icon.
 | `Shift+A` | Archive oldest old note |
 | `⌘↵` | Save note in editor |
 | `Esc` | Close editor |
-
-
-## Install
-
-Installing the "Notes App" (name tbd ig):
-- unzip github file, preferabbly save it somewhere easy to find
-- Open Terminal
-- Run the following:
-- cd (file location name)
-- npm install
-- nmp start
-
-Hopefully this will work now!
-- 

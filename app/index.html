@@ -34,7 +34,106 @@
   <div id="breadcrumb"></div>
 
   <button class="hbtn" id="newBtn" title="New note (Enter)">+</button>
+  <button class="desktop-app-btn" id="desktopAppBtn" title="Get desktop app">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <rect x="0.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.9"/>
+      <rect x="7.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+      <rect x="0.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
+      <rect x="7.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.35"/>
+    </svg>
+    get desktop app
+  </button>
   <button class="hbtn" id="settingsBtn" title="Settings">⚙</button>
+</div>
+
+<!-- DESKTOP APP SETUP MODAL -->
+<div class="overlay" id="setupOverlay">
+  <div class="setup-box">
+    <div class="setup-header">
+      <div class="setup-title">Get the desktop app</div>
+      <span class="e-close" id="setupClose">✕</span>
+    </div>
+    <div class="setup-intro">
+      The desktop version lives as a small tab on the edge of your screen — always accessible, no browser needed.
+    </div>
+
+    <!-- Step indicator -->
+    <div class="setup-steps-nav" id="setupStepsNav">
+      <div class="setup-step-dot active" data-step="0"></div>
+      <div class="setup-step-dot" data-step="1"></div>
+      <div class="setup-step-dot" data-step="2"></div>
+      <div class="setup-step-dot" data-step="3"></div>
+    </div>
+
+    <!-- Steps -->
+    <div class="setup-steps" id="setupSteps">
+
+      <!-- Step 0: Download -->
+      <div class="setup-step active" data-step="0">
+        <div class="setup-step-num">01</div>
+        <div class="setup-step-title">Download Node.js</div>
+        <div class="setup-step-body">
+          The desktop app runs on Electron, which requires Node.js. Download and install it first — it's a one-time step.
+        </div>
+        <a class="setup-action-btn" href="https://nodejs.org" target="_blank">
+          Download Node.js →
+        </a>
+        <div class="setup-step-note">Choose the LTS version. Run the installer and follow the prompts.</div>
+      </div>
+
+      <!-- Step 1: Download zip -->
+      <div class="setup-step" data-step="1">
+        <div class="setup-step-num">02</div>
+        <div class="setup-step-title">Download the app files</div>
+        <div class="setup-step-body">
+          Download the dig systems desktop package and unzip it somewhere you'll remember — your Documents folder works well.
+        </div>
+        <a class="setup-action-btn" href="dig-systems-final.zip" download>
+          Download dig systems →
+        </a>
+        <div class="setup-step-note">Unzip the folder after downloading. Don't delete it — the app runs from this folder.</div>
+      </div>
+
+      <!-- Step 2: Terminal -->
+      <div class="setup-step" data-step="2">
+        <div class="setup-step-num">03</div>
+        <div class="setup-step-title">Open Terminal and install</div>
+        <div class="setup-step-body">
+          Open Terminal (press <span class="setup-kbd">⌘ Space</span>, type <em>Terminal</em>, press Enter). Then type <span class="setup-kbd">cd&nbsp;</span> with a space after it, drag your unzipped <em>dig-systems</em> folder into the Terminal window, and press Enter.
+        </div>
+        <div class="setup-code-block">cd ~/Documents/dig-systems</div>
+        <div class="setup-step-body" style="margin-top:12px">Then run this to install dependencies (takes about a minute):</div>
+        <div class="setup-code-block">npm install</div>
+        <div class="setup-step-note">You only need to do this once.</div>
+      </div>
+
+      <!-- Step 3: Launch -->
+      <div class="setup-step" data-step="3">
+        <div class="setup-step-num">04</div>
+        <div class="setup-step-title">Launch the app</div>
+        <div class="setup-step-body">
+          Still in Terminal, run:
+        </div>
+        <div class="setup-code-block">npm start</div>
+        <div class="setup-step-body" style="margin-top:12px">
+          A small tab will appear on the right edge of your screen. Click it to open dig systems. From now on you can launch it the same way any time.
+        </div>
+        <div class="setup-step-note">
+          If macOS blocks the app, go to System Settings → Privacy &amp; Security and click "Open Anyway".
+        </div>
+        <button class="setup-action-btn" style="margin-top:16px" onclick="tryOpenApp()">
+          Already installed? Open app →
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="setup-nav">
+      <button class="setup-nav-btn" id="setupBack">← back</button>
+      <button class="setup-nav-btn primary" id="setupNext">next →</button>
+    </div>
+  </div>
 </div>
 
 <!-- FLOAT VIEW -->
@@ -45,8 +144,7 @@
     <div class="sc-row"><span>Notes:</span><span class="sc-key">Enter</span></div>
     <div class="sc-row"><span>View:</span><span class="sc-key">Tab</span></div>
     <div class="sc-row"><span>Archive:</span><span class="sc-key">Shift+A</span></div>
-    <div class="sc-row"><span>Undo:</span><span class="sc-key">⌘Z</span></div>
-  </div>
+    <div class="sc-row"><span>Undo:</span><span class="sc-key">⌘Z</span></div>  </div>
 </div>
 
 <!-- FINDER VIEW -->
@@ -99,6 +197,25 @@
       </select>
       <button class="e-save" id="eSave">Save  ⌘↵</button>
     </div>
+  </div>
+</div>
+
+<!-- ARCHIVE PANEL -->
+<div class="archive-panel" id="archivePanel" style="display:none">
+  <div class="archive-box">
+    <div class="archive-header">
+      <div class="archive-title">Archive</div>
+      <div class="archive-controls">
+        <select class="archive-sort" id="archiveSort">
+          <option value="newest">newest first</option>
+          <option value="oldest">oldest first</option>
+          <option value="az">a → z</option>
+          <option value="za">z → a</option>
+        </select>
+        <span class="e-close" id="archivePanelClose">✕</span>
+      </div>
+    </div>
+    <div class="archive-body" id="archiveBody"></div>
   </div>
 </div>
 
@@ -187,11 +304,22 @@ function renderFloat() {
       x0 = Math.min(x0, n.x-14); y0 = Math.min(y0, n.y-14);
       x1 = Math.max(x1, n.x+n.w+14); y1 = Math.max(y1, n.y+n.h+14);
     });
+
+    // Reserve 22px at the top of the bubble for the group label
+    const LABEL_H = 22;
     const bg = div('group-bubble');
     bg.dataset.group = g;
-    css(bg, { left:x0+'px', top:y0+'px', width:(x1-x0)+'px', height:(y1-y0)+'px', pointerEvents:'auto', cursor:'grab' });
+    // Expand bubble upward by LABEL_H so label sits above the cards
+    css(bg, {
+      left: x0+'px',
+      top: (y0 - LABEL_H)+'px',
+      width: (x1-x0)+'px',
+      height: (y1-y0+LABEL_H)+'px',
+      pointerEvents: 'auto',
+      cursor: 'grab'
+    });
 
-    // label
+    // label sits at the top of the bubble, above the cards
     const lbl = div('group-bubble-label');
     lbl.textContent = g;
     bg.appendChild(lbl);
@@ -294,8 +422,8 @@ function renderFloat() {
     acts.innerHTML = `<div class="ring-act confirm" id="rAccept">✓</div><div class="ring-act dismiss" id="rIgnore">✕</div>`;
     canvas.appendChild(acts);
     document.getElementById('rAccept').onclick = () => {
-      sample.forEach(n => { n.grouped = true; if(!n.group) n.group = 'studio'; });
-      S.suggestVisible = false; renderFloat(); toast('Grouping accepted');
+      S.suggestVisible = false;
+      openGroupNameModal(sample);
     };
     document.getElementById('rIgnore').onclick = () => {
       S.suggestVisible = false; renderFloat(); toast('Suggestion dismissed');
@@ -433,8 +561,25 @@ function setupLasso(canvas) {
   });
 }
 
+function arrangeGroup(notes) {
+  // Tile notes in a grid starting from the topmost-leftmost note's position
+  if (!notes.length) return;
+  const GAP = 12;
+  const COLS = Math.ceil(Math.sqrt(notes.length));
+  // Find the anchor position (top-left of the group's current bounding box)
+  let anchorX = Math.min(...notes.map(n => n.x));
+  let anchorY = Math.min(...notes.map(n => n.y));
+  // Leave room for the group label above
+  anchorY += 30;
+  notes.forEach((n, i) => {
+    const col = i % COLS;
+    const row = Math.floor(i / COLS);
+    n.x = anchorX + col * (n.w + GAP);
+    n.y = anchorY + row * (n.h + GAP);
+  });
+}
+
 function openGroupNameModal(selectedNotes) {
-  // Remove any existing modal
   document.querySelectorAll('.group-name-modal').forEach(el => el.remove());
 
   const modal = div('group-name-modal');
@@ -452,7 +597,7 @@ function openGroupNameModal(selectedNotes) {
   `;
   document.body.appendChild(modal);
 
-  // Show existing groups as quick-pick chips
+  // Only show existing user-created groups as chips (empty on fresh start)
   const existing = document.getElementById('gnmExisting');
   S.groups.forEach(g => {
     const chip = div('gnm-chip');
@@ -466,10 +611,11 @@ function openGroupNameModal(selectedNotes) {
 
   function doGroup() {
     const name = input.value.trim();
-    if (!name) return;
+    if (!name) { input.style.borderColor = 'rgba(0,0,0,0.4)'; input.focus(); return; }
     snapshot('group notes');
     if (!S.groups.includes(name)) S.groups.push(name);
     selectedNotes.forEach(n => { n.group = name; n.grouped = true; });
+    arrangeGroup(selectedNotes);
     modal.remove();
     renderFloat();
     toast(`Grouped into "${name}"`);
@@ -782,6 +928,46 @@ document.getElementById('autoFmtBtn').onclick = function() {
 };
 document.getElementById('settingsBtn').onclick = () => toast('Settings coming soon');
 
+/* ── SETUP MODAL ── */
+let setupStep = 0;
+const totalSteps = 4;
+
+function updateSetupStep(step) {
+  setupStep = step;
+  document.querySelectorAll('.setup-step').forEach(el => {
+    el.classList.toggle('active', +el.dataset.step === step);
+  });
+  document.querySelectorAll('.setup-step-dot').forEach(el => {
+    el.classList.toggle('active', +el.dataset.step === step);
+  });
+  document.getElementById('setupBack').style.visibility = step === 0 ? 'hidden' : 'visible';
+  document.getElementById('setupNext').textContent = step === totalSteps - 1 ? 'done' : 'next →';
+}
+
+document.getElementById('desktopAppBtn').onclick = () => {
+  updateSetupStep(0);
+  document.getElementById('setupOverlay').classList.add('open');
+};
+document.getElementById('setupClose').onclick = () =>
+  document.getElementById('setupOverlay').classList.remove('open');
+document.getElementById('setupNext').onclick = () => {
+  if (setupStep < totalSteps - 1) updateSetupStep(setupStep + 1);
+  else document.getElementById('setupOverlay').classList.remove('open');
+};
+document.getElementById('setupBack').onclick = () => {
+  if (setupStep > 0) updateSetupStep(setupStep - 1);
+};
+document.querySelectorAll('.setup-step-dot').forEach(dot => {
+  dot.onclick = () => updateSetupStep(+dot.dataset.step);
+});
+
+function tryOpenApp() {
+  window.location = 'digsystems://open';
+  setTimeout(() => {
+    toast('App not found — complete setup first');
+  }, 1500);
+}
+
 document.addEventListener('click', e => {
   if (!e.target.closest('.mode-wrap')) {
     document.getElementById('modeDropdown').classList.remove('open');
@@ -792,43 +978,30 @@ document.addEventListener('click', e => {
   }
 });
 
-// Handle Shift+Enter in textarea to insert newline
-document.getElementById('eBody').addEventListener('keydown', e => {
-  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
-  const isNewlineShortcut = (isMac && e.metaKey && e.key === 'Enter') || (!isMac && e.shiftKey && e.key === 'Enter');
-  
-  if (isNewlineShortcut) {
-    e.preventDefault();
-    const textarea = e.target;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    
-    // Insert newline at cursor position
-    textarea.value = text.substring(0, start) + '\n' + text.substring(end);
-    
-    // Move cursor after the inserted newline
-    textarea.selectionStart = textarea.selectionEnd = start + 1;
-  }
-});
-
 document.addEventListener('keydown', e => {
+  if (document.getElementById('archivePanel').style.display !== 'none') {
+    if (e.key === 'Escape') document.getElementById('archivePanel').style.display = 'none';
+    return;
+  }
+  if (document.getElementById('setupOverlay').classList.contains('open')) {
+    if (e.key === 'Escape') document.getElementById('setupOverlay').classList.remove('open');
+    return;
+  }
   if (document.getElementById('viewerOverlay').classList.contains('open')) {
     if (e.key === 'Escape') document.getElementById('viewerOverlay').classList.remove('open');
     return;
   }
   if (document.getElementById('overlay').classList.contains('open')) {
     if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open');
-    if (e.key==='Enter' && !e.shiftKey && !e.metaKey) saveNote();
+    if ((e.metaKey||e.ctrlKey) && e.key==='Enter') saveNote();
     return;
   }
   if ((e.metaKey||e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
   if (e.key==='Enter' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openEditor(null); }
   if (e.key==='Tab') { e.preventDefault(); switchMode(S.mode==='float' ? 'finder' : 'float'); }
   if (e.shiftKey && e.key==='A') {
-    const old = S.notes.find(n => !n.archived && isOld(n.created));
-    if (old) { snapshot('archive note'); old.archived=true; if(S.mode==='float') renderFloat(); toast('Archived: '+old.title.slice(0,28)); }
-    else toast('No old notes to archive');
+    e.preventDefault();
+    openArchivePanel();
   }
 });
 
@@ -836,7 +1009,81 @@ document.addEventListener('keydown', e => {
 function div(cls) { const d = document.createElement('div'); if(cls) d.className=cls; return d; }
 function css(el, styles) { Object.assign(el.style, styles); }
 
+/* ─────────────────────────────── ARCHIVE PANEL ─── */
+function openArchivePanel() {
+  renderArchivePanel();
+  document.getElementById('archivePanel').style.display = 'flex';
+}
+
+function renderArchivePanel() {
+  const sort = document.getElementById('archiveSort').value;
+  const body = document.getElementById('archiveBody');
+  body.innerHTML = '';
+
+  let archived = S.notes.filter(n => n.archived);
+
+  if (sort === 'newest') archived.sort((a,b) => b.created - a.created);
+  else if (sort === 'oldest') archived.sort((a,b) => a.created - b.created);
+  else if (sort === 'az') archived.sort((a,b) => a.title.localeCompare(b.title));
+  else if (sort === 'za') archived.sort((a,b) => b.title.localeCompare(a.title));
+
+  if (!archived.length) {
+    const empty = div('archive-empty');
+    empty.textContent = 'No archived notes yet.';
+    body.appendChild(empty);
+    return;
+  }
+
+  archived.forEach(n => {
+    const row = div('archive-item');
+    const info = div('archive-item-info');
+    const title = div('archive-item-title'); title.textContent = n.title;
+    const meta = div('archive-item-meta');
+    meta.textContent = (n.group ? n.group + ' · ' : '') + ageText(n.created);
+    info.appendChild(title); info.appendChild(meta);
+
+    const actions = div('archive-item-actions');
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.className = 'archive-btn';
+    restoreBtn.textContent = 'Restore';
+    restoreBtn.onclick = () => {
+      snapshot('restore note');
+      n.archived = false;
+      renderArchivePanel();
+      if (S.mode === 'float') renderFloat(); else renderFinder();
+      toast(`"${n.title.slice(0,24)}" restored`);
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'archive-btn danger';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = () => {
+      if (!confirm(`Permanently delete "${n.title}"?`)) return;
+      snapshot('delete note');
+      S.notes = S.notes.filter(x => x.id !== n.id);
+      renderArchivePanel();
+      if (S.mode === 'float') renderFloat(); else renderFinder();
+    };
+
+    actions.appendChild(restoreBtn);
+    actions.appendChild(deleteBtn);
+    row.appendChild(info);
+    row.appendChild(actions);
+    body.appendChild(row);
+  });
+}
+
+document.getElementById('archivePanelClose').onclick = () =>
+  document.getElementById('archivePanel').style.display = 'none';
+document.getElementById('archiveSort').addEventListener('change', renderArchivePanel);
+
 /* ─────────────────────────────── INIT ─── */
+// Hide "get desktop app" button when already running inside Electron
+if (window.electronAPI) {
+  const btn = document.getElementById('desktopAppBtn');
+  if (btn) btn.style.display = 'none';
+}
 renderFloat();
 </script>
 </body>

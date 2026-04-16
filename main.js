@@ -1,6 +1,18 @@
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
 
+// ── Register custom URL scheme (digsystems://) ───────────────
+// Must be called before app is ready
+if (process.defaultApp) {
+  // Running via `electron .` in dev — register with the electron binary
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('digsystems', process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  // Running as packaged app
+  app.setAsDefaultProtocolClient('digsystems');
+}
+
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); process.exit(0); }
@@ -10,19 +22,17 @@ let appWindow = null;   // the main notes app
 let isAppOpen = false;
 
 // ── dimensions ──────────────────────────────────────────────
-const TAB_W = 48;
-const TAB_H = 110;
+const TAB_W = 64;   // wider window — more of the face is visible
+const TAB_H = 140;  // taller
 const APP_W = 860;
 const APP_H = 600;
-const EDGE_MARGIN = 0; // flush to right edge
 
 function getTabPosition(display) {
-  const { width, height } = display.workAreaSize;
+  const { width } = display.workAreaSize;
   const { x: wx, y: wy } = display.workArea;
-  // Top-right, tab protrudes from edge — sits so only the visible face shows
   return {
-    x: wx + width - TAB_W + 18, // 18px hidden behind screen edge
-    y: wy + 60                  // drop from top a little
+    x: wx + width - TAB_W + 20, // 20px tucked behind edge, rest protrudes
+    y: wy + 80
   };
 }
 
@@ -33,6 +43,18 @@ function getAppPosition(display) {
     x: wx + width - APP_W - 8,
     y: wy + 60
   };
+}
+
+// ── open or focus the app window ────────────────────────────
+function openApp() {
+  if (isAppOpen && appWindow) {
+    if (appWindow.isMinimized()) appWindow.restore();
+    appWindow.focus();
+  } else {
+    createAppWindow();
+    isAppOpen = true;
+    if (tabWindow) tabWindow.webContents.send('app-state', true);
+  }
 }
 
 // ── create tab window ────────────────────────────────────────
@@ -61,10 +83,7 @@ function createTabWindow() {
   });
 
   tabWindow.loadFile('tab.html');
-
-  // keep tab on top even when other windows focus
   tabWindow.setAlwaysOnTop(true, 'screen-saver');
-
   tabWindow.on('closed', () => { tabWindow = null; });
 }
 
@@ -84,15 +103,23 @@ function createAppWindow() {
     resizable: true,
     skipTaskbar: false,
     backgroundColor: '#f0efec',
-    titleBarStyle: 'hidden',
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 14, y: 16 },
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      zoomFactor: 1.0
     }
   });
 
   appWindow.loadFile(path.join(__dirname, 'app', 'index.html'));
+
+  // Lock zoom to 1.0 — prevents macOS Retina scaling the UI up
+  appWindow.webContents.on('did-finish-load', () => {
+    appWindow.webContents.setZoomFactor(1.0);
+    appWindow.webContents.setZoomLevel(0);
+  });
 
   appWindow.on('closed', () => {
     appWindow = null;
@@ -101,7 +128,6 @@ function createAppWindow() {
   });
 
   appWindow.on('focus', () => {
-    // Bring tab back on top when app is focused
     if (tabWindow) tabWindow.setAlwaysOnTop(true, 'screen-saver');
   });
 }
@@ -111,9 +137,7 @@ ipcMain.on('toggle-app', () => {
   if (isAppOpen && appWindow) {
     appWindow.close();
   } else {
-    createAppWindow();
-    isAppOpen = true;
-    if (tabWindow) tabWindow.webContents.send('app-state', true);
+    openApp();
   }
 });
 
@@ -121,9 +145,32 @@ ipcMain.on('close-app', () => {
   if (appWindow) appWindow.close();
 });
 
+// ── URL scheme handler (macOS) ───────────────────────────────
+// Fired when app is already running and receives a digsystems:// URL
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  openApp();
+});
+
+// ── URL scheme handler (Windows) ────────────────────────────
+// On Windows, a second instance is launched with the URL as an argv
+app.on('second-instance', (event, argv) => {
+  const url = argv.find(arg => arg.startsWith('digsystems://'));
+  if (url) {
+    openApp();
+  } else if (appWindow) {
+    if (appWindow.isMinimized()) appWindow.restore();
+    appWindow.focus();
+  }
+});
+
 // ── app lifecycle ────────────────────────────────────────────
 app.whenReady().then(() => {
   createTabWindow();
+
+  // Handle URL if app was cold-launched via digsystems:// link
+  const urlArg = process.argv.find(arg => arg.startsWith('digsystems://'));
+  if (urlArg) openApp();
 
   app.on('activate', () => {
     if (!tabWindow) createTabWindow();
@@ -131,15 +178,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // On macOS keep running; on Windows quit when all windows close
-  // but we always keep the tab, so this shouldn't fire normally
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Re-focus app window if second instance is launched
-app.on('second-instance', () => {
-  if (appWindow) {
-    if (appWindow.isMinimized()) appWindow.restore();
-    appWindow.focus();
-  }
-});

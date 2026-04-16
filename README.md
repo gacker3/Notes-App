@@ -2,6 +2,21 @@
 
 A floating notes app that lives as a small tab on the right edge of your screen.
 
+LATEST UPDATES: --------------
+Okay this was the final one I did on thursday, the main tweaks are as listed:
+
+red/yellow/green button are properly embedded
+no more overlap of the notes when they are grouped
+no more overlaping text as far as I can see, padding should be all good
+made the tab a bit bigger and have it just labbeled as 'tab' for now
+shift + A actually opens the Archive directory instead of just auto archiving elements (it seemed to make more sense)
+You can still archive items, it's just in the (...) menu in the top right along with ungroup
+There's now a prompt to label the group instead of defaulting to 'studio' or 'capstone' etc etc
+the desktop "app" version doesn't still give the prompt if it's not open on a web browser
+I think that's it, it's all vostly vanity stuff but I figured I'd get the bugs out of the way. The intstall instructions still need some tweaking, but assuming you don't move the zip file from downloads you should be good.
+
+Let me know if you spot any other bugs!
+
 ## Structure
 
 ```

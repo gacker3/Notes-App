@@ -792,6 +792,26 @@ document.addEventListener('click', e => {
   }
 });
 
+// Handle Shift+Enter in textarea to insert newline
+document.getElementById('eBody').addEventListener('keydown', e => {
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  const isNewlineShortcut = (isMac && e.metaKey && e.key === 'Enter') || (!isMac && e.shiftKey && e.key === 'Enter');
+  
+  if (isNewlineShortcut) {
+    e.preventDefault();
+    const textarea = e.target;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    
+    // Insert newline at cursor position
+    textarea.value = text.substring(0, start) + '\n' + text.substring(end);
+    
+    // Move cursor after the inserted newline
+    textarea.selectionStart = textarea.selectionEnd = start + 1;
+  }
+});
+
 document.addEventListener('keydown', e => {
   if (document.getElementById('viewerOverlay').classList.contains('open')) {
     if (e.key === 'Escape') document.getElementById('viewerOverlay').classList.remove('open');
@@ -799,7 +819,7 @@ document.addEventListener('keydown', e => {
   }
   if (document.getElementById('overlay').classList.contains('open')) {
     if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open');
-    if (e.key==='Enter') saveNote();
+    if (e.key==='Enter' && !e.shiftKey && !e.metaKey) saveNote();
     return;
   }
   if ((e.metaKey||e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); return; }

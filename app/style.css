@@ -165,6 +165,9 @@ body {
   color: var(--text);
   line-height: 1.35;
 }
+.note-date {
+  margin-top: auto;
+}
 /* Hover actions */
 .note-actions {
   display: none;

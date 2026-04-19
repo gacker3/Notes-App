@@ -56,7 +56,7 @@ function toast(msg) {
 }
 
 /* ─────────────────────────────── FLOAT VIEW ─── */
-let drag = null, dragOff = {x:0,y:0};
+let drag = null, dragOff = {x:0,y:0}, lastDragMoved = false;
 let activeGroupMenu = null; // currently open group name
 
 function closeGroupMenu() {
@@ -215,13 +215,23 @@ function renderFloat() {
       <div class="note-inner">
         <div class="note-title">${n.title}</div>
         <div class="note-age">${ageText(n.created)}</div>
+        <div class="note-date"></div>
       </div>
       <div class="note-actions">
         <div class="nact edit-nact" title="Edit">✎</div>
       </div>
     `;
     card.querySelector('.edit-nact').addEventListener('click', e => { e.stopPropagation(); openEditor(n.id); });
-    card.addEventListener('click', e => { if (!e.target.classList.contains('nact')) openViewer(n.id); });
+    
+    // Populate note-date if the note has date information
+    if (n.day && n.month && n.year) {
+      const noteDateEl = card.querySelector('.note-date');
+      noteDateEl.textContent = formatDateDisplay([n.day, n.month, n.year]);
+    }
+    
+    card.addEventListener('click', e => { 
+      if (!e.target.classList.contains('nact') && !lastDragMoved) openViewer(n.id); 
+    });
     card.addEventListener('mousedown', onMouseDown);
     canvas.appendChild(card);
   });
@@ -244,14 +254,16 @@ function onMouseDown(e) {
 }
 document.addEventListener('mousemove', e => {
   if (!drag) return;
-  if (!drag.hasMoved) { snapshot('move note'); drag.hasMoved = true; }
+  if (!drag.hasMoved) { snapshot('move note'); drag.hasMoved = true; lastDragMoved = true; }
   drag.note.x = e.clientX - dragOff.x;
   drag.note.y = e.clientY - dragOff.y;
   drag.card.style.left = drag.note.x + 'px';
   drag.card.style.top  = drag.note.y + 'px';
 });
 document.addEventListener('mouseup', () => {
-  if (drag) { drag.card.classList.remove('dragging'); drag = null; }
+  if (drag) { drag.card.classList.remove('dragging'); }
+  if (drag && !drag.hasMoved) { lastDragMoved = false; }
+  drag = null;
 });
 
 /* ─────────────────────────────── LASSO SELECT ─── */
@@ -633,6 +645,13 @@ function openEditor(id) {
     document.getElementById('eBody').value = n ? (n.body || '') : '';
   }
 
+  // Load date fields if note has date data, otherwise clear them
+  if (n && n.day && n.month && n.year) {
+    updateDate([n.day, n.month, n.year]);
+  } else {
+    updateDate([null, null, null]);
+  }
+
   syncTodoUI();
   document.getElementById('overlay').classList.add('open');
   document.getElementById('eTitle').focus();
@@ -643,6 +662,9 @@ function saveNote() {
   if (!title) { toast('Add a title'); return; }
   const group = document.getElementById('eGroup').value;
   const isTodo = document.getElementById('eTodo').checked;
+  const day = date[0] || null;
+  const month = date[1] || null;
+  const year = date[2] || null;
 
   let body = '';
   let items = [];
@@ -660,11 +682,11 @@ function saveNote() {
   if (S.editingId) {
     snapshot('edit note');
     const n = S.notes.find(x => x.id === S.editingId);
-    if (n) Object.assign(n, { title, body, items, todo: isTodo, group });
+    if (n) Object.assign(n, { title, body, items, todo: isTodo, group, day, month, year });
   } else {
     snapshot('new note');
     S.notes.push({
-      id: nextId++, title, body, items, todo: isTodo, group,
+      id: nextId++, title, body, items, todo: isTodo, group, day, month, year,
       x: 60 + Math.random() * 300, y: 60 + Math.random() * 200,
       w: 130, h: 95, created: Date.now(), completed: false, archived: false, grouped: false
     });

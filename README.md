@@ -3,8 +3,11 @@
 A floating notes app that lives as a small tab on the right edge of your screen.
 
 LATEST UPDATES: --------------
-Okay this was the final one I did on thursday, the main tweaks are as listed:
+1. Colour tabs made on desktop when a group is faved!
+2. Info is saved when the tab is closed
 
+
+FEATURES: ---------------------
 1. red/yellow/green button are properly embedded
 2. no more overlap of the notes when they are grouped
 3. no more overlaping text as far as I can see, padding should be all good

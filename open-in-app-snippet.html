@@ -1,0 +1,70 @@
+<!--
+  Drop this anywhere in your webpage to add an "Open in app" button.
+  When clicked, Safari (or any browser) will prompt the user to open
+  the dig systems desktop app via the digsystems:// URL scheme.
+
+  The app must have been run at least once (npm start) or installed
+  as a .app for the URL scheme to be registered with the OS.
+-->
+
+<style>
+  .open-in-app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: #1c1c1a;
+    color: #f0efec;
+    border: none;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .open-in-app-btn:hover { opacity: 0.82; }
+  .open-in-app-btn svg { flex-shrink: 0; }
+
+  .open-in-app-status {
+    font-size: 11px;
+    color: #9e9e9a;
+    margin-top: 6px;
+    display: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  }
+</style>
+
+<button class="open-in-app-btn" onclick="openDigSystems()">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <rect x="0.5" y="0.5" width="5.5" height="5.5" rx="1" fill="currentColor" opacity="0.9"/>
+    <rect x="8" y="0.5" width="5.5" height="5.5" rx="1" fill="currentColor" opacity="0.7"/>
+    <rect x="0.5" y="8" width="5.5" height="5.5" rx="1" fill="currentColor" opacity="0.5"/>
+    <rect x="8" y="8" width="5.5" height="5.5" rx="1" fill="currentColor" opacity="0.35"/>
+  </svg>
+  Open in dig systems
+</button>
+<div class="open-in-app-status" id="digStatus">
+  App not found — make sure dig systems is installed and has been opened at least once.
+</div>
+
+<script>
+  function openDigSystems() {
+    // Try to open the app via the custom URL scheme
+    window.location = 'digsystems://open';
+
+    // If the app isn't installed, the browser won't navigate away
+    // and we can detect that after a short delay to show a fallback message
+    const start = Date.now();
+    setTimeout(() => {
+      // If we're still on the page after 1.5s, the app probably isn't registered
+      if (Date.now() - start < 2000 && document.visibilityState !== 'hidden') {
+        document.getElementById('digStatus').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('digStatus').style.display = 'none';
+        }, 4000);
+      }
+    }, 1500);
+  }
+</script>

@@ -890,8 +890,26 @@ document.getElementById('eBody').addEventListener('keydown', e => {
 
 /* ─────────────────────────────── INIT ─── */
 // Hide "get desktop app" button when already running inside Electron
+function persist() {
+  if (window.electronAPI) {
+    window.electronAPI.saveData({ notes: S.notes, groups: S.groups, nextId });
+  }
+}
+
 if (window.electronAPI) {
   const btn = document.getElementById('desktopAppBtn');
   if (btn) btn.style.display = 'none';
 }
-renderFloat();
+
+async function init() {
+  if (window.electronAPI) {
+    const saved = await window.electronAPI.loadData();
+    if (saved) {
+      S.notes  = saved.notes  || [];
+      S.groups = saved.groups || [];
+      nextId   = saved.nextId || 1;
+    }
+  }
+  renderFloat();
+}
+init();

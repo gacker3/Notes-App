@@ -14,6 +14,7 @@ Okay this was the final one I did on thursday, the main tweaks are as listed:
 7. There's now a prompt to label the group instead of defaulting to 'studio' or 'capstone' etc etc
 8. the desktop "app" version doesn't still give the prompt if it's not open on a web browser
 9. I think that's it, it's all vostly vanity stuff but I figured I'd get the bugs out of the way. The intstall instructions still need some tweaking, but assuming you don't move the zip file from downloads you should be good.
+10. Tab is now flush!
 
 Let me know if you spot any other bugs!
 

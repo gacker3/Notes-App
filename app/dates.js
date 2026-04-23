@@ -160,15 +160,17 @@ function processDayInput() {
     dayInputMode = null;
     return;
   }
-  const dayNumber = getDayNumber(input);
+
   // Case 1: "X" - Set to today and save
   if (input === 'x') {
     const today = new Date();
     updateDate([today.getDate(), today.getMonth() + 1, today.getFullYear()]);
     saveNote();
     return;
-  }else if (input.startsWith('n') && input.length > 1) {
-    // Case 2: "N" followed by day name (e.g., "nfri", "nwed")
+  }
+
+  // Case 2: "N" followed by day name (e.g., "nfri", "nwed")
+  if (input.startsWith('n') && input.length > 1) {
     dayInputMode = 'n-mode';
     const dayPart = input.substring(1);
     const dayNumber = getDayNumber(dayPart);
@@ -180,16 +182,21 @@ function processDayInput() {
       }
     }
     return;
-  }else if (dayNumber !== null) {
-    // Case 3: Weekday name or abbreviation
+  }
+
+  // Case 3: Weekday name or abbreviation
+  const dayNumber = getDayNumber(input);
+  if (dayNumber !== null) {
     dayInputMode = 'weekday';
     const nextDate = getNextDateForDay(dayNumber);
     if (nextDate) {
       updateDate(nextDate);
     }
     return;
-  }else if (/^\d+$/.test(input)) {
-    // Case 4: Number - Update day only and focus month
+  }
+
+  // Case 4: Number - Update day only and focus month
+  if (/^\d+$/.test(input)) {
     dayInputMode = 'number';
     const dayValue = parseInt(input);
     if (dayValue >= 1 && dayValue <= 31) {

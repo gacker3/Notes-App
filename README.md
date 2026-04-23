@@ -2,7 +2,19 @@
 
 A floating notes app that lives as a small tab on the right edge of your screen.
 
-LATEST UPDATES: --------------
+reb updates
+1. 
+
+
+
+
+
+
+
+
+
+
+PAST UPDATES: --------------
 Okay this was the final one I did on thursday, the main tweaks are as listed:
 
 1. red/yellow/green button are properly embedded

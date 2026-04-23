@@ -3,7 +3,11 @@
 A floating notes app that lives as a small tab on the right edge of your screen.
 
 reb updates
-1. 
+1. Update font-family to 'Gabarito' in CSS
+2. remove some sybols and change formatting
+3. display date at the bottom of each note
+4. add toggle between notes and groups on finder mode
+5. 
 
 
 

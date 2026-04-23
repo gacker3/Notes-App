@@ -3,6 +3,7 @@ const S = {
   mode: 'float',
   hideCompleted: false,
   filterGroup: 'all',
+  finderLayout: 'grouped',
   suggestVisible: true,
   editingId: null,
   groups: [],
@@ -208,7 +209,9 @@ function renderFloat() {
 
   // Note cards — rendered on top of group bubbles
   S.notes.filter(n => !n.archived).forEach(n => {
-    const card = div('note-card' + (n.grouped ? ' grouped' : ''));
+    const card = div('note-card'
+  + (n.grouped ? ' grouped' : '')
+  + (n.todo ? ' todo' : ''));
     card.dataset.id = n.id;
     css(card, { left:n.x+'px', top:n.y+'px', width:n.w+'px', height:n.h+'px' });
     card.innerHTML = `
@@ -427,6 +430,7 @@ function renderFinder() {
   const toolbar = document.getElementById('finderToolbar');
   toolbar.querySelectorAll('.ftab,.fdrop,.hide-btn,.toolbar-div').forEach(e => e.remove());
   const spacer = toolbar.querySelector('.toolbar-spacer');
+  const searchWrap = toolbar.querySelector('.search-wrap');
   const tabs = ['all', ...S.groups];
   tabs.forEach(g => {
     const b = document.createElement('button');
@@ -436,14 +440,14 @@ function renderFinder() {
     toolbar.insertBefore(b, spacer);
   });
   const sdrop = document.createElement('button'); sdrop.className = 'fdrop';
-  sdrop.textContent = 'Date/time created ∨'; toolbar.insertBefore(sdrop, spacer);
+  sdrop.textContent = 'Date/time created ∨'; toolbar.insertBefore(sdrop, searchWrap);
   const pdrop = document.createElement('button'); pdrop.className = 'fdrop';
-  pdrop.textContent = 'priority ∨'; toolbar.insertBefore(pdrop, spacer);
+  pdrop.textContent = 'priority ∨'; toolbar.insertBefore(pdrop, searchWrap);
   const hbtn = document.createElement('button');
   hbtn.className = 'hide-btn' + (S.hideCompleted ? ' on' : '');
   hbtn.textContent = 'hide completed';
   hbtn.onclick = () => { S.hideCompleted = !S.hideCompleted; renderFinder(); };
-  toolbar.insertBefore(hbtn, spacer);
+  toolbar.insertBefore(hbtn, searchWrap);
 
   let filtered = S.notes.filter(n => !n.archived);
   if (S.filterGroup !== 'all') filtered = filtered.filter(n => n.group === S.filterGroup);
@@ -465,35 +469,74 @@ function renderFinder() {
       row.appendChild(sc);
     });
     wrapper.appendChild(row);
+
     const dv = div('finder-divider'); wrapper.appendChild(dv);
+
+    const toggleRow = div('finder-layout-toggle');
+    toggleRow.innerHTML = `
+      <button class="finder-layout-btn${S.finderLayout === 'ungrouped' ? ' active' : ''}" data-layout="ungrouped">notes</button>
+      <button class="finder-layout-btn${S.finderLayout === 'grouped' ? ' active' : ''}" data-layout="grouped">grouped</button>
+    `;
+    toggleRow.querySelectorAll('.finder-layout-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        S.finderLayout = btn.dataset.layout;
+        renderFinder();
+      });
+    });
+    wrapper.appendChild(toggleRow);
   }
 
   // Group sections
   const byGroup = {};
   filtered.forEach(n => { (byGroup[n.group||'ungrouped'] = byGroup[n.group||'ungrouped']||[]).push(n); });
-  const groupsToShow = S.filterGroup === 'all' ? Object.keys(byGroup) : [S.filterGroup];
+  const groupsToShow = S.finderLayout === 'ungrouped'
+    ? ['notes']
+    : (S.filterGroup === 'all' ? Object.keys(byGroup) : [S.filterGroup]);
   groupsToShow.forEach(g => {
-    const notes = byGroup[g] || [];
-    const sec = div('group-section');
-    const hdr = div('group-hdr'); hdr.textContent = g;
-    hdr.onclick = () => { S.filterGroup = g; setBreadcrumb(g); renderFinder(); };
-    sec.appendChild(hdr);
-    const grid = div('note-grid');
-    notes.forEach(n => {
-      const card = div('finder-card' + (n.completed ? ' completed' : ''));
-      card.innerHTML = `
-        <div class="fc-age">${ageText(n.created)}</div>
-        <div class="fc-title">${n.title}</div>
-        <div class="fc-check">${n.completed ? '✓' : ''}</div>
-      `;
-      card.querySelector('.fc-check').addEventListener('click', e => {
-        e.stopPropagation(); n.completed = !n.completed; renderFinder();
+    const notes = S.finderLayout === 'ungrouped' ? filtered : (byGroup[g] || []);
+    if (S.finderLayout === 'ungrouped') {
+      const grid = div('note-grid');
+      notes.forEach(n => {
+        const dueText = (n.day && n.month && n.year) ? formatDateDisplay([n.day, n.month, n.year]) : '';
+        const card = div('finder-card' + (n.completed ? ' completed' : ''));
+        card.innerHTML = `
+          <div class="fc-age">${ageText(n.created)}</div>
+          <div class="fc-title">${n.title}</div>
+          ${dueText ? `<div class="fc-date">${dueText}</div>` : ''}
+          <div class="fc-check">${n.completed ? '✓' : ''}</div>
+        `;
+        card.querySelector('.fc-check').addEventListener('click', e => {
+          e.stopPropagation(); n.completed = !n.completed; renderFinder();
+        });
+        card.addEventListener('click', () => openViewer(n.id));
+        grid.appendChild(card);
       });
-      card.addEventListener('click', () => openViewer(n.id));
-      grid.appendChild(card);
-    });
-    sec.appendChild(grid);
-    wrapper.appendChild(sec);
+      wrapper.appendChild(grid);
+    } else {
+      const sec = div('group-section');
+      const hdr = div('group-hdr');
+      hdr.textContent = g;
+      hdr.onclick = () => { S.filterGroup = g; setBreadcrumb(g); renderFinder(); };
+      sec.appendChild(hdr);
+      const grid = div('note-grid');
+      notes.forEach(n => {
+        const dueText = (n.day && n.month && n.year) ? formatDateDisplay([n.day, n.month, n.year]) : '';
+        const card = div('finder-card' + (n.completed ? ' completed' : ''));
+        card.innerHTML = `
+          <div class="fc-age">${ageText(n.created)}</div>
+          <div class="fc-title">${n.title}</div>
+          ${dueText ? `<div class="fc-date">${dueText}</div>` : ''}
+          <div class="fc-check">${n.completed ? '✓' : ''}</div>
+        `;
+        card.querySelector('.fc-check').addEventListener('click', e => {
+          e.stopPropagation(); n.completed = !n.completed; renderFinder();
+        });
+        card.addEventListener('click', () => openViewer(n.id));
+        grid.appendChild(card);
+      });
+      sec.appendChild(grid);
+      wrapper.appendChild(sec);
+    }
   });
 
   body.appendChild(wrapper);
@@ -705,6 +748,8 @@ function switchMode(mode) {
   document.querySelectorAll('.mode-option').forEach(o => o.classList.toggle('active', o.dataset.mode===mode));
   document.getElementById('float-view').classList.toggle('active', mode==='float');
   document.getElementById('finder-view').classList.toggle('active', mode==='finder');
+  const autoFmtBtn = document.getElementById('autoFmtBtn');
+  if (autoFmtBtn) autoFmtBtn.style.display = mode === 'float' ? 'inline-flex' : 'none';
   document.getElementById('breadcrumb').innerHTML = '';
   S.filterGroup = 'all';
   if (mode==='float') renderFloat(); else renderFinder();
@@ -890,26 +935,8 @@ document.getElementById('eBody').addEventListener('keydown', e => {
 
 /* ─────────────────────────────── INIT ─── */
 // Hide "get desktop app" button when already running inside Electron
-function persist() {
-  if (window.electronAPI) {
-    window.electronAPI.saveData({ notes: S.notes, groups: S.groups, nextId });
-  }
-}
-
 if (window.electronAPI) {
   const btn = document.getElementById('desktopAppBtn');
   if (btn) btn.style.display = 'none';
 }
-
-async function init() {
-  if (window.electronAPI) {
-    const saved = await window.electronAPI.loadData();
-    if (saved) {
-      S.notes  = saved.notes  || [];
-      S.groups = saved.groups || [];
-      nextId   = saved.nextId || 1;
-    }
-  }
-  renderFloat();
-}
-init();
+renderFloat();

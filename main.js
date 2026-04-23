@@ -1,4 +1,3 @@
-const fs = require('fs');
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
 
@@ -27,13 +26,12 @@ const TAB_W = 64;   // wider window — more of the face is visible
 const TAB_H = 140;  // taller
 const APP_W = 860;
 const APP_H = 600;
-const TAB_VISIBLE = 44;  // how much of the tab peeks out when app is closed — should be less than TAB_W for the click area to fit
 
 function getTabPosition(display) {
   const { width } = display.workAreaSize;
   const { x: wx, y: wy } = display.workArea;
   return {
-    x: wx + width - TAB_VISIBLE,
+    x: wx + width - TAB_W + 20, // 20px tucked behind edge, rest protrudes
     y: wy + 80
   };
 }
@@ -77,7 +75,6 @@ function createTabWindow() {
     skipTaskbar: true,
     hasShadow: false,
     focusable: true,
-    enableLargerThanScreen: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -146,30 +143,6 @@ ipcMain.on('toggle-app', () => {
 
 ipcMain.on('close-app', () => {
   if (appWindow) appWindow.close();
-});
-
-function getDataPath() {
-  return path.join(app.getPath('userData'), 'notes-data.json');
-}
-
-ipcMain.on('save-data', (event, data) => {
-  try {
-    fs.writeFileSync(getDataPath(), JSON.stringify(data), 'utf8');
-  } catch (e) {
-    console.error('Failed to save data:', e);
-  }
-});
-
-ipcMain.handle('load-data', () => {
-  try {
-    const filePath = getDataPath();
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    }
-  } catch (e) {
-    console.error('Failed to load data:', e);
-  }
-  return null;
 });
 
 // ── URL scheme handler (macOS) ───────────────────────────────

@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>dig systems — notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -34,15 +35,6 @@
   <div id="breadcrumb"></div>
 
   <button class="hbtn" id="newBtn" title="New note (Enter)">+</button>
-  <button class="desktop-app-btn" id="desktopAppBtn" title="Get desktop app">
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect x="0.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.9"/>
-      <rect x="7.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
-      <rect x="0.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
-      <rect x="7.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.35"/>
-    </svg>
-    get desktop app
-  </button>
   <button class="hbtn" id="settingsBtn" title="Settings">⚙</button>
 </div>
 
@@ -153,7 +145,6 @@
     <span class="toolbar-spacer"></span>
     <div class="search-wrap">
       <input class="search-input" id="searchInput" placeholder="search by keyword"/>
-      <div class="grid-btn"><div></div><div></div><div></div><div></div></div>
     </div>
   </div>
   <div class="finder-body" id="finderBody"></div>
@@ -228,6 +219,16 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<button class="desktop-app-btn" id="desktopAppBtn" title="Get desktop app">
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.9"/>
+    <rect x="7.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+    <rect x="0.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
+    <rect x="7.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.35"/>
+  </svg>
+  get desktop app
+</button>
 
 <script src="app.js"></script>
 <script src="dates.js"></script>

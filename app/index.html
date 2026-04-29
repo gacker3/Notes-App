@@ -229,6 +229,62 @@
   </svg>
   get desktop app
 </button>
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-box">
+    <div class="settings-header">
+      <div class="settings-title">Settings</div>
+      <span class="e-close" id="settingsOverlayClose">✕</span>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section-label">Appearance</div>
+      <div class="settings-row">
+        <label>Dark mode</label>
+        <button class="settings-toggle" id="sToggleDark"></button>
+      </div>
+      <div class="settings-row">
+        <label>High contrast (WCAG AA)</label>
+        <button class="settings-toggle" id="sToggleWcag"></button>
+      </div>
+      <div class="settings-section-label">Layout</div>
+      <div class="settings-row">
+        <label>Auto format groups</label>
+        <button class="settings-toggle" id="sToggleAuto"></button>
+      </div>
+      <div class="settings-row">
+        <label>Default view</label>
+        <select class="settings-select" id="sDefaultView">
+          <option value="float">Floating Desktop</option>
+          <option value="finder">Finder Desktop</option>
+        </select>
+      </div>
+      <div class="settings-divider"></div>
+      <div class="settings-section-label">Region</div>
+      <div class="settings-row">
+        <label>Timezone</label>
+        <select class="settings-select" id="sTimezone">
+          <option value="Pacific/Honolulu">Hawaii (UTC−10)</option>
+          <option value="America/Los_Angeles">Pacific (UTC−8)</option>
+          <option value="America/Denver">Mountain (UTC−7)</option>
+          <option value="America/Chicago">Central (UTC−6)</option>
+          <option value="America/New_York">Eastern (UTC−5)</option>
+          <option value="America/Sao_Paulo">São Paulo (UTC−3)</option>
+          <option value="Europe/London">London (UTC+0)</option>
+          <option value="Europe/Amsterdam">Amsterdam (UTC+1)</option>
+          <option value="Europe/Berlin">Berlin (UTC+1)</option>
+          <option value="Europe/Helsinki">Helsinki (UTC+2)</option>
+          <option value="Europe/Istanbul">Istanbul (UTC+3)</option>
+          <option value="Asia/Dubai">Dubai (UTC+4)</option>
+          <option value="Asia/Kolkata">Mumbai (UTC+5:30)</option>
+          <option value="Asia/Singapore">Singapore (UTC+8)</option>
+          <option value="Asia/Shanghai">Shanghai (UTC+8)</option>
+          <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+          <option value="Australia/Sydney">Sydney (UTC+10)</option>
+          <option value="Pacific/Auckland">Auckland (UTC+12)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="app.js"></script>
 <script src="dates.js"></script>

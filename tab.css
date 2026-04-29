@@ -89,3 +89,9 @@ html, body {
 .tab-face.open .tab-dot.active {
   background: #606060;
 }
+
+/* Click animation */
+.tab-face:active {
+  transform: scaleX(0.93);
+  transform-origin: right center;
+}

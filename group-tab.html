@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>group tab</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; }
+html, body { width: 52px; height: 110px; background: transparent; overflow: hidden; }
+.gtab { width: 52px; height: 110px; display: flex; align-items: center; justify-content: flex-start; }
+.gtab-face {
+  width: 36px; height: 96px;
+  border-radius: 10px 0 0 10px;
+  border: 0.5px solid rgba(0,0,0,0.15); border-right: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer;
+  transition: filter 0.15s, width 0.1s, transform 0.08s;
+}
+.gtab-face:hover { filter: brightness(0.92); width: 38px; }
+.gtab-face:active { transform: scaleX(0.9); transform-origin: right center; }
+.gtab-label {
+  font-family: 'Gabarito', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 8px; font-weight: 700; letter-spacing: 0.04em;
+  color: rgba(0,0,0,0.5); text-align: center; line-height: 1.3;
+  text-transform: uppercase; max-width: 28px; overflow: hidden; word-break: break-all;
+}
+.gtab-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+<div class="gtab"><div class="gtab-face" id="face"><div class="gtab-label" id="label">—</div><div class="gtab-dot"></div></div></div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const groupName = params.get('group') || '?';
+  const color = params.get('color') || '#e0dfd8';
+  document.getElementById('label').textContent = groupName.slice(0, 8);
+  document.getElementById('face').style.background = color;
+  document.getElementById('face').addEventListener('click', () => { window.electronAPI.openGroup(groupName); });
+</script>
+</body>
+</html>

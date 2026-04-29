@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dig systems — notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER1 -->
+<div class="header">
+  <div class="mode-wrap">
+    <button class="mode-btn" id="modeBtn">
+      <span id="modeLabel">Floating Desktop</span>
+      <svg width="9" height="6" viewBox="0 0 9 6"><path d="M1 1L4.5 4.5L8 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+    </button>
+    <div class="mode-dropdown" id="modeDropdown">
+      <div class="mode-option active" data-mode="float">Floating Desktop</div>
+      <div class="mode-option" data-mode="finder">Finder Desktop</div>
+    </div>
+  </div>
+
+  <button class="auto-format-toggle" id="autoFmtBtn" title="Auto format grouping">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor">
+      <rect x="0" y="0" width="5.5" height="5.5" rx="1" opacity=".6"/>
+      <rect x="7.5" y="0" width="5.5" height="5.5" rx="1" opacity=".6"/>
+      <rect x="0" y="7.5" width="5.5" height="5.5" rx="1" opacity=".35"/>
+      <rect x="7.5" y="7.5" width="5.5" height="5.5" rx="1" opacity=".35"/>
+    </svg>
+    auto format
+  </button>
+
+  <div id="breadcrumb"></div>
+
+  <button class="hbtn" id="newBtn" title="New note (Enter)">+</button>
+  <button class="hbtn" id="settingsBtn" title="Settings">⚙</button>
+</div>
+
+<!-- DESKTOP APP SETUP MODAL -->
+<div class="overlay" id="setupOverlay">
+  <div class="setup-box">
+    <div class="setup-header">
+      <div class="setup-title">Get the desktop app</div>
+      <span class="e-close" id="setupClose">✕</span>
+    </div>
+    <div class="setup-intro">
+      The desktop version lives as a small tab on the edge of your screen — always accessible, no browser needed.
+    </div>
+
+    <!-- Step indicator -->
+    <div class="setup-steps-nav" id="setupStepsNav">
+      <div class="setup-step-dot active" data-step="0"></div>
+      <div class="setup-step-dot" data-step="1"></div>
+      <div class="setup-step-dot" data-step="2"></div>
+      <div class="setup-step-dot" data-step="3"></div>
+    </div>
+
+    <!-- Steps -->
+    <div class="setup-steps" id="setupSteps">
+
+      <!-- Step 0: Download -->
+      <div class="setup-step active" data-step="0">
+        <div class="setup-step-num">01</div>
+        <div class="setup-step-title">Download Node.js</div>
+        <div class="setup-step-body">
+          The desktop app runs on Electron, which requires Node.js. Download and install it first — it's a one-time step.
+        </div>
+        <a class="setup-action-btn" href="https://nodejs.org" target="_blank">
+          Download Node.js →
+        </a>
+        <div class="setup-step-note">Choose the LTS version. Run the installer and follow the prompts.</div>
+      </div>
+
+      <!-- Step 1: Download zip -->
+      <div class="setup-step" data-step="1">
+        <div class="setup-step-num">02</div>
+        <div class="setup-step-title">Download the app files</div>
+        <div class="setup-step-body">
+          Download the dig systems desktop package and unzip it somewhere you'll remember — your Documents folder works well.
+        </div>
+        <a class="setup-action-btn" href="dig-systems-final.zip" download>
+          Download dig systems →
+        </a>
+        <div class="setup-step-note">Unzip the folder after downloading. Don't delete it — the app runs from this folder.</div>
+      </div>
+
+      <!-- Step 2: Terminal -->
+      <div class="setup-step" data-step="2">
+        <div class="setup-step-num">03</div>
+        <div class="setup-step-title">Open Terminal and install</div>
+        <div class="setup-step-body">
+          Open Terminal (press <span class="setup-kbd">⌘ Space</span>, type <em>Terminal</em>, press Enter). Then type <span class="setup-kbd">cd&nbsp;</span> with a space after it, drag your unzipped <em>dig-systems</em> folder into the Terminal window, and press Enter.
+        </div>
+        <div class="setup-code-block">cd ~/Documents/dig-systems</div>
+        <div class="setup-step-body" style="margin-top:12px">Then run this to install dependencies (takes about a minute):</div>
+        <div class="setup-code-block">npm install</div>
+        <div class="setup-step-note">You only need to do this once.</div>
+      </div>
+
+      <!-- Step 3: Launch -->
+      <div class="setup-step" data-step="3">
+        <div class="setup-step-num">04</div>
+        <div class="setup-step-title">Launch the app</div>
+        <div class="setup-step-body">
+          Still in Terminal, run:
+        </div>
+        <div class="setup-code-block">npm start</div>
+        <div class="setup-step-body" style="margin-top:12px">
+          A small tab will appear on the right edge of your screen. Click it to open dig systems. From now on you can launch it the same way any time.
+        </div>
+        <div class="setup-step-note">
+          If macOS blocks the app, go to System Settings → Privacy &amp; Security and click "Open Anyway".
+        </div>
+        <button class="setup-action-btn" style="margin-top:16px" onclick="tryOpenApp()">
+          Already installed? Open app →
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="setup-nav">
+      <button class="setup-nav-btn" id="setupBack">← back</button>
+      <button class="setup-nav-btn primary" id="setupNext">next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FLOAT VIEW -->
+<div class="view active" id="float-view">
+  <div class="float-canvas" id="floatCanvas"></div>
+  <div class="shortcuts-panel">
+    <div class="sc-title">Shortcuts</div>
+    <div class="sc-row"><span>Notes:</span><span class="sc-key">Enter</span></div>
+    <div class="sc-row"><span>View:</span><span class="sc-key">Tab</span></div>
+    <div class="sc-row"><span>Archive:</span><span class="sc-key">Shift+A</span></div>
+    <div class="sc-row"><span>Undo:</span><span class="sc-key">⌘Z</span></div>  </div>
+</div>
+
+<!-- FINDER VIEW -->
+<div class="view" id="finder-view">
+  <div class="finder-toolbar" id="finderToolbar">
+    <span class="toolbar-spacer"></span>
+    <div class="search-wrap">
+      <input class="search-input" id="searchInput" placeholder="search by keyword"/>
+    </div>
+  </div>
+  <div class="finder-body" id="finderBody"></div>
+</div>
+
+<!-- NOTE VIEWER (read-only) -->
+<div class="overlay" id="viewerOverlay">
+  <div class="editor-box">
+    <div class="editor-top">
+      <div class="viewer-title" id="viewerTitle"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="viewer-edit-btn" id="viewerEditBtn" title="Edit">✎</span>
+        <span class="e-close" id="viewerClose">✕</span>
+      </div>
+    </div>
+    <div class="viewer-body" id="viewerBody"></div>
+    <div class="viewer-meta" id="viewerMeta"></div>
+  </div>
+</div>
+
+<!-- NOTE EDITOR -->
+<div class="overlay" id="overlay">
+  <div class="editor-box">
+    <div class="editor-top">
+      <input class="e-title" id="eTitle" placeholder="Note title…"/>
+      <span class="e-close" id="eClose">✕</span>
+    </div>
+    <!-- Plain body (shown when todo is unchecked) -->
+    <textarea class="e-body" id="eBody" placeholder="Write anything…&#10;&#10;Start a line with - for a bullet point"></textarea>
+    <!-- Date fields -->
+    <div class="e-dates" style="display:flex;flex-direction:column;gap:8px;">
+      <input class="e-date" id="eDay" type="text" placeholder="Day"/>
+      <div style="display:flex;gap:8px;">
+        <input class="e-date" id="eMonth" type="text" placeholder="Month" maxlength="2"/>
+        <input class="e-date" id="eYear" type="text" placeholder="Year" maxlength="4"/>
+      </div>
+    </div>
+    <!-- Todo item list (shown when todo is checked) -->
+    <div class="todo-editor" id="todoEditor">
+      <div class="todo-items" id="todoItems"></div>
+      <button class="todo-add-btn" id="todoAddBtn">+ add item</button>
+    </div>
+    <div class="e-meta">
+      <label class="e-check-label"><input type="checkbox" id="eTodo" style="margin:0"/> todo list</label>
+    </div>
+    <div class="e-footer">
+      <select class="e-group" id="eGroup">
+        <option value="">no group</option>
+      </select>
+      <button class="e-save" id="eSave">Save ↵</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE PANEL -->
+<div class="archive-panel" id="archivePanel" style="display:none">
+  <div class="archive-box">
+    <div class="archive-header">
+      <div class="archive-title">Archive</div>
+      <div class="archive-controls">
+        <select class="archive-sort" id="archiveSort">
+          <option value="newest">newest first</option>
+          <option value="oldest">oldest first</option>
+          <option value="az">a → z</option>
+          <option value="za">z → a</option>
+        </select>
+        <span class="e-close" id="archivePanelClose">✕</span>
+      </div>
+    </div>
+    <div class="archive-body" id="archiveBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<button class="desktop-app-btn" id="desktopAppBtn" title="Get desktop app">
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.9"/>
+    <rect x="7.5" y="0.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+    <rect x="0.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
+    <rect x="7.5" y="7.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.35"/>
+  </svg>
+  get desktop app
+</button>
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-box">
+    <div class="settings-header">
+      <div class="settings-title">Settings</div>
+      <span class="e-close" id="settingsOverlayClose">✕</span>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section-label">Appearance</div>
+      <div class="settings-row">
+        <label>Dark mode</label>
+        <button class="settings-toggle" id="sToggleDark"></button>
+      </div>
+      <div class="settings-row">
+        <label>High contrast (WCAG AA)</label>
+        <button class="settings-toggle" id="sToggleWcag"></button>
+      </div>
+      <div class="settings-section-label">Layout</div>
+      <div class="settings-row">
+        <label>Auto format groups</label>
+        <button class="settings-toggle" id="sToggleAuto"></button>
+      </div>
+      <div class="settings-row">
+        <label>Default view</label>
+        <select class="settings-select" id="sDefaultView">
+          <option value="float">Floating Desktop</option>
+          <option value="finder">Finder Desktop</option>
+        </select>
+      </div>
+      <div class="settings-divider"></div>
+      <div class="settings-section-label">Region</div>
+      <div class="settings-row">
+        <label>Timezone</label>
+        <select class="settings-select" id="sTimezone">
+          <option value="Pacific/Honolulu">Hawaii (UTC−10)</option>
+          <option value="America/Los_Angeles">Pacific (UTC−8)</option>
+          <option value="America/Denver">Mountain (UTC−7)</option>
+          <option value="America/Chicago">Central (UTC−6)</option>
+          <option value="America/New_York">Eastern (UTC−5)</option>
+          <option value="America/Sao_Paulo">São Paulo (UTC−3)</option>
+          <option value="Europe/London">London (UTC+0)</option>
+          <option value="Europe/Amsterdam">Amsterdam (UTC+1)</option>
+          <option value="Europe/Berlin">Berlin (UTC+1)</option>
+          <option value="Europe/Helsinki">Helsinki (UTC+2)</option>
+          <option value="Europe/Istanbul">Istanbul (UTC+3)</option>
+          <option value="Asia/Dubai">Dubai (UTC+4)</option>
+          <option value="Asia/Kolkata">Mumbai (UTC+5:30)</option>
+          <option value="Asia/Singapore">Singapore (UTC+8)</option>
+          <option value="Asia/Shanghai">Shanghai (UTC+8)</option>
+          <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+          <option value="Australia/Sydney">Sydney (UTC+10)</option>
+          <option value="Pacific/Auckland">Auckland (UTC+12)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="dates.js"></script>
+</body>
+</html>

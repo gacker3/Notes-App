@@ -3,8 +3,14 @@
 A floating notes app that lives as a small tab on the right edge of your screen.
 
 LATEST UPDATES: --------------
-1. Colour tabs made on desktop when a group is faved!
-2. Info is saved when the tab is closed
+1. Ammended format errors on the web verison
+2. Moved the download button
+3. Can now pan around within the floating desktop version
+4. There is now a WCAG compatible toggle version within settings
+5. Contents of notes more visible on desktop
+6. Electron kicking bug resolved
+7. group bubbles now also match tabs :)
+8. A to do list has an icon now indicating as such
 
 
 FEATURES: ---------------------
@@ -18,6 +24,8 @@ FEATURES: ---------------------
 8. the desktop "app" version doesn't still give the prompt if it's not open on a web browser
 9. I think that's it, it's all vostly vanity stuff but I figured I'd get the bugs out of the way. The intstall instructions still need some tweaking, but assuming you don't move the zip file from downloads you should be good.
 10. Tab is now flush!
+11. Colour tabs made on desktop when a group is faved!
+12. Info is saved when the tab is closed
 
 Let me know if you spot any other bugs!
 

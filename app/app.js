@@ -557,6 +557,7 @@ function renderFinder() {
       row.appendChild(sc);
     });
     wrapper.appendChild(row);
+
     const dv = div('finder-divider'); wrapper.appendChild(dv);
 
     const toggleRow = div('finder-layout-toggle');

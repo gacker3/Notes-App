@@ -3,6 +3,8 @@
 A floating notes app that lives as a small tab on the right edge of your screen.
 
 LATEST UPDATES: --------------
+
+gabby ubdates
 1. Ammended format errors on the web verison
 2. Moved the download button
 3. Can now pan around within the floating desktop version
@@ -11,6 +13,25 @@ LATEST UPDATES: --------------
 6. Electron kicking bug resolved
 7. group bubbles now also match tabs :)
 8. A to do list has an icon now indicating as such
+
+reb updates
+1. Update font-family to 'Gabarito' in CSS
+2. remove some sybols and change formatting
+3. display date at the bottom of each note
+4. add toggle between notes and groups on finder mode
+5. 
+
+
+
+
+
+
+
+
+
+
+PAST UPDATES: --------------
+Okay this was the final one I did on thursday, the main tweaks are as listed:
 
 
 FEATURES: ---------------------
